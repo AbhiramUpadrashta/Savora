@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#4f6bed">
+<title>Savora — Treasure of Recipes</title>
+<link rel="icon" href="icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#/"><img src="icon.svg" alt=""><span><b>Savora</b><small>Treasure of Recipes</small></span></a>
+  <label class="search"><span>🔍</span><input id="q" type="search" placeholder="Search 1000+ recipes…" autocomplete="off"></label>
+  <nav class="side">
+    <a href="#/" data-nav="home">🏠 <span>Home</span></a><a href="#/cats" data-nav="cats">🍽️ <span>Categories</span></a><a href="#/fav" data-nav="fav">❤️ <span>Favourites</span></a><a href="#/settings" data-nav="settings">⚙️ <span>Settings</span></a>
+  </nav>
+</header>
+<main id="view"></main>
+<nav class="tabs"><a href="#/" data-nav="home">🏠<span>Home</span></a><a href="#/cats" data-nav="cats">🍽️<span>Categories</span></a><a href="#/fav" data-nav="fav">❤️<span>Favourites</span></a><a href="#/settings" data-nav="settings">⚙️<span>Settings</span></a></nav>
+<div id="upd" class="upd" hidden></div>
+<script src="js/version.js"></script><script src="js/recipes.js"></script><script src="js/recipes2.js"></script><script src="js/recipes3.js"></script>
+<script src="js/art.js"></script><script src="js/chefs.js"></script><script src="js/chef.js"></script><script src="js/update.js"></script><script src="js/app.js"></script>
+</body>
+</html>
