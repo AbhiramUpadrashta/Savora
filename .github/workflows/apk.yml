@@ -1,0 +1,28 @@
+# Runs on the public Savora repo's "android" branch: whenever a new APK is handed over from the
+# private Savora-src build, attach it to the matching release so the download links work.
+name: Attach Android APK
+on:
+  push:
+    branches: [android]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: { group: release, cancel-in-progress: false }
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Attach APK to the release
+        env: { GH_TOKEN: "${{ github.token }}", GH_REPO: "${{ github.repository }}" }
+        run: |
+          VERSION=$(cat version.txt); TAG="v$VERSION"
+          SIZE=$(stat -c %s Savora.apk)
+          HAVE=$(gh release view "$TAG" --json assets -q '.assets[]|select(.name=="Savora.apk")|.size' 2>/dev/null || true)
+          if [ "$HAVE" = "$SIZE" ]; then echo "APK $VERSION already attached"; exit 0; fi
+          NOTES="Savora $VERSION — the treasure of recipes. By Bubbles Aro.
+
+          **Android:** Savora.apk · **Windows:** Savora-Setup.exe · **Mac:** Savora-mac.zip
+          Install help: https://abhiramupadrashta.github.io/Savora/#install"
+          if gh release view "$TAG" >/dev/null 2>&1; then gh release upload "$TAG" Savora.apk Annakuber.apk --clobber
+          else gh release create "$TAG" Savora.apk Annakuber.apk --title "Savora $VERSION" --notes "$NOTES" --latest; fi
