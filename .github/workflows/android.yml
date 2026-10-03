@@ -2,8 +2,8 @@
 # the signing key) and pushed to this repo's "android" branch with a deploy key that can only write here.
 name: Publish Android APK
 on:
-  push:
-    branches: [android]
+  schedule:
+    - cron: "29 * * * *"     # every hour: publish a newly handed-over APK
   workflow_dispatch:
 permissions:
   contents: write
@@ -18,6 +18,9 @@ jobs:
         env: { GH_TOKEN: "${{ github.token }}", GH_REPO: "${{ github.repository }}" }
         run: |
           VERSION=$(cat version.txt); TAG="v$VERSION"; TITLE="Savora $VERSION"
+          SIZE=$(stat -c %s Savora.apk)
+          HAVE=$(gh release view "$TAG" --json assets -q '.assets[]|select(.name=="Savora.apk")|.size' 2>/dev/null || true)
+          if [ "$HAVE" = "$SIZE" ]; then echo "APK $VERSION already published"; exit 0; fi
           FILES="Savora.apk Annakuber.apk"
           NOTES="Savora $VERSION — the treasure of recipes. By Bubbles Aro.
 
