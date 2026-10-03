@@ -1,0 +1,94 @@
+# The app's source code is private (AbhiramUpadrashta/Savora-src). This public repo only builds and
+# publishes the finished app and its website, so people can download it. A read-only deploy key
+# (secret SRC_KEY) lets these workflows check out the private code.
+name: Build & Release Savora (desktop)
+on:
+  schedule:
+    - cron: "23 * * * *"     # every hour: build when the private code has a new version
+  workflow_dispatch:
+    inputs:
+      force: { description: "Rebuild even if this version is already published", type: boolean, default: false }
+permissions:
+  contents: write
+concurrency: { group: release, cancel-in-progress: false }
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      build: ${{ steps.v.outputs.build }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { repository: AbhiramUpadrashta/Savora-src, ssh-key: "${{ secrets.SRC_KEY }}" }
+      - id: v
+        env: { GH_TOKEN: "${{ github.token }}", GH_REPO: "${{ github.repository }}", FORCE: "${{ inputs.force }}" }
+        run: |
+          V=$(node -p "require('./package.json').version")
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          have=$(gh release view "v$V" --json assets -q '.assets[].name' 2>/dev/null || true)
+          need=0; for a in Savora-mac.zip Savora-Setup.exe; do echo "$have" | grep -qx "$a" || need=1; done
+          if [ "$FORCE" = "true" ]; then need=1; fi
+          echo "Version $V — build needed: $need"
+          echo "build=$([ $need = 1 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+  desktop:
+    needs: check
+    if: needs.check.outputs.build == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-latest, target: mac }
+          - { os: windows-latest, target: win }
+    runs-on: ${{ matrix.os }}
+    env: { CSC_IDENTITY_AUTO_DISCOVERY: "false" }
+    steps:
+      - uses: actions/checkout@v4
+        with: { repository: AbhiramUpadrashta/Savora-src, ssh-key: "${{ secrets.SRC_KEY }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Install & prepare
+        shell: bash
+        run: |
+          npm install --no-audit --no-fund
+          echo "window.AK_VERSION = '${{ needs.check.outputs.version }}';" > docs/app/js/version.js
+          node scripts/icons.js
+      - name: Build macOS app
+        if: matrix.target == 'mac'
+        run: |
+          npm run dist:mac
+          APP="$(find dist -maxdepth 2 -name 'Savora.app' | head -1)"
+          codesign --force --deep --sign - "$APP"
+          ditto -c -k --sequesterRsrc --keepParent "$APP" dist/Savora-mac.zip
+          cp dist/Savora-mac.zip dist/Annakuber-mac.zip
+      - name: Build Windows installer
+        if: matrix.target == 'win'
+        shell: bash
+        run: |
+          npm run dist:win
+          cp dist/Savora-Setup.exe dist/Annakuber-Setup.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: savora-${{ matrix.target }}
+          path: |
+            dist/Savora-mac.zip
+            dist/Savora-Setup.exe
+            dist/Annakuber-mac.zip
+            dist/Annakuber-Setup.exe
+          if-no-files-found: error
+  release:
+    needs: [check, desktop]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: out, merge-multiple: true }
+      - name: Publish release
+        env: { GH_TOKEN: "${{ github.token }}", GH_REPO: "${{ github.repository }}" }
+        run: |
+          VERSION=${{ needs.check.outputs.version }}; TAG="v$VERSION"; TITLE="Savora $VERSION"
+          FILES="out/Savora-mac.zip out/Savora-Setup.exe out/Annakuber-mac.zip out/Annakuber-Setup.exe"
+          NOTES="Savora $VERSION — the treasure of recipes. 1150+ recipes with Chef Kuber cooking live. By Bubbles Aro.
+
+          **Android:** Savora.apk · **Windows:** Savora-Setup.exe · **Mac:** Savora-mac.zip
+          Install help: https://bubbles-hq.netlify.app/savora/#install"
+          if gh release view "$TAG" >/dev/null 2>&1; then gh release upload "$TAG" $FILES --clobber
+          else gh release create "$TAG" $FILES --title "$TITLE" --notes "$NOTES" --latest || gh release upload "$TAG" $FILES --clobber; fi

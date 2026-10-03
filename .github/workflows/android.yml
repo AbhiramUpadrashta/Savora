@@ -1,0 +1,27 @@
+# Attaches the Android APK to the release. The APK is built in the private Savora-src repo (which holds
+# the signing key) and pushed to this repo's "android" branch with a deploy key that can only write here.
+name: Publish Android APK
+on:
+  push:
+    branches: [android]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: { group: release, cancel-in-progress: false }
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: android }
+      - name: Publish APK
+        env: { GH_TOKEN: "${{ github.token }}", GH_REPO: "${{ github.repository }}" }
+        run: |
+          VERSION=$(cat version.txt); TAG="v$VERSION"; TITLE="Savora $VERSION"
+          FILES="Savora.apk Annakuber.apk"
+          NOTES="Savora $VERSION — the treasure of recipes. By Bubbles Aro.
+
+          **Android:** Savora.apk · **Windows:** Savora-Setup.exe · **Mac:** Savora-mac.zip
+          Install help: https://bubbles-hq.netlify.app/savora/#install"
+          if gh release view "$TAG" >/dev/null 2>&1; then gh release upload "$TAG" $FILES --clobber
+          else gh release create "$TAG" $FILES --title "$TITLE" --notes "$NOTES" --latest || gh release upload "$TAG" $FILES --clobber; fi
