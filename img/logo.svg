@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Savora">
+  <defs>
+    <linearGradient id="bowl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb46e"/><stop offset=".6" stop-color="#ff8a7a"/><stop offset="1" stop-color="#f0607f"/></linearGradient>
+    <radialGradient id="s1" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#ffdbe7"/><stop offset=".45" stop-color="#ff8fb1"/><stop offset="1" stop-color="#df4f86"/></radialGradient>
+    <radialGradient id="s2" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#d8fff3"/><stop offset=".45" stop-color="#5fd9b6"/><stop offset="1" stop-color="#21a383"/></radialGradient>
+    <radialGradient id="s3" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#d6e0ff"/><stop offset=".45" stop-color="#7c9cff"/><stop offset="1" stop-color="#4659d8"/></radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="#fff8f2"/>
+  <circle cx="200" cy="200" r="38" fill="url(#s2)"/>
+  <path d="M184 190a20 20 0 0 1 14-14" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".85"/>
+  <circle cx="272" cy="140" r="28" fill="url(#s1)"/>
+  <path d="M260 132a14 14 0 0 1 10-10" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".85"/>
+  <circle cx="320" cy="214" r="46" fill="url(#s3)"/>
+  <path d="M300 202a26 26 0 0 1 18-18" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" opacity=".85"/>
+  <path d="M96 276h320a160 140 0 0 1-320 0z" fill="url(#bowl)"/>
+  <rect x="84" y="262" width="344" height="28" rx="14" fill="#f2566f"/>
+  <path d="M150 316c30 40 80 60 130 56" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round" opacity=".45"/>
+  <rect x="196" y="404" width="120" height="22" rx="11" fill="#e8546f"/>
+</svg>
